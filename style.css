@@ -1,0 +1,64 @@
+body {
+  margin: 0;
+  background: #111;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+#game {
+  max-width: 720px;
+  margin: 24px auto;
+  padding: 20px;
+  border: 2px solid #444;
+  border-radius: 16px;
+  background: #1b1b1b;
+}
+
+.panel {
+  border: 1px solid #555;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 12px 0;
+  background: #242424;
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+button {
+  margin: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.big-char {
+  font-size: 56px;
+  margin: 20px 0;
+}
+
+.hpbar {
+  font-size: 24px;
+  margin: 8px 0;
+}
+
+.message {
+  min-height: 48px;
+  margin: 16px 0;
+  line-height: 1.5;
+}
+
+.shop-item {
+  border: 1px solid #555;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 12px 0;
+  background: #222;
+}
