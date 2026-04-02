@@ -1,3 +1,7 @@
+const bgm = document.getElementById("bgm");
+const clickSound = document.getElementById("click");
+const hitSound = document.getElementById("hit");
+const winSound = document.getElementById("win");
 function portal() {
   getGame().innerHTML = `
     <h2>🌀 포탈</h2>
