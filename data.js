@@ -1,32 +1,42 @@
-let player = {
-  hp: 5,
-  maxHp: 5,
-  atk: 1,
-  gold: 0,
-  weapon: "맨손",
-  level: 1,
-  killCount: 0
-};
+function openShop() {
+  document.getElementById("game").innerHTML = `
+    <h2>상점</h2>
+    <p>골드: ${player.gold}G</p>
 
-let weapons = {
-  "맨손": { atk: 1, price: 0 },
-  "강철검": { atk: 2, price: 300 },
-  "다이아몬드 검": { atk: 3, price: 600 },
-  "세라핌 검": { atk: 6, price: 5000 }
-};
+    <button onclick="buyWeapon('강철검')">강철검 (300G / 공격력 2)</button>
+    <button onclick="buyWeapon('다이아몬드 검')">다이아검 (600G / 공격력 3)</button>
+    <button onclick="buyWeapon('세라핌 검')">세라핌검 (5000G / 공격력 6)</button>
 
-let monsters = {
-  slime: {
-    name: "슬라임",
-    hp: 3,
-    atk: 1,
-    reward: 20
-  },
-  kingSlime: {
-    name: "킹 슬라임",
-    hp: 10,
-    atk: 2,
-    reward: 200,
-    boss: true
+    <button onclick="buyPotion()">포션 (50G / 풀회복)</button>
+
+    <br><br>
+    <button onclick="updateUI()">뒤로가기</button>
+  `;
+}
+
+function buyWeapon(name) {
+  const w = weapons[name];
+
+  if (player.gold >= w.price) {
+    player.gold -= w.price;
+    player.weapon = name;
+    player.atk = w.atk;
+    alert(name + " 구매 완료!");
+  } else {
+    alert("돈 부족!");
   }
-};
+
+  openShop();
+}
+
+function buyPotion() {
+  if (player.gold >= 50) {
+    player.gold -= 50;
+    player.hp = player.maxHp;
+    alert("풀 회복!");
+  } else {
+    alert("돈 부족!");
+  }
+
+  openShop();
+}
