@@ -26,10 +26,12 @@ function makeHpBar(current, max) {
 function renderTop() {
   return `
     <div class="panel">
+      <div>⭐ 레벨: ${player.level}</div>
       <div>❤️ 체력: ${makeHpBar(player.hp, player.maxHp)} (${player.hp}/${player.maxHp})</div>
       <div>💰 골드: ${player.gold}G</div>
       <div>🗡 무기: ${player.weapon}</div>
       <div>💥 공격력: ${player.atk}</div>
+      <div>🐾 일반 몬스터 처치: ${player.normalKillCount}/2</div>
     </div>
   `;
 }
