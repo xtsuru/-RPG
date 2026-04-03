@@ -1,53 +1,42 @@
-function shop() {
-  getGame().innerHTML = `
-    <h2>🏪 상점</h2>
-    ${renderTop()}
+function openShop() {
+  document.getElementById("game").innerHTML = `
+    <h2>상점</h2>
+    <p>골드: ${player.gold}G</p>
 
-    <div class="shop-item">
-      <h3>${shopItems.potion.name}</h3>
-      <p>가격: ${shopItems.potion.price}G</p>
-      <p>${shopItems.potion.desc}</p>
-      <button onclick="buyItem('potion'); playSound('sfxClick')">구매</button>
-    </div>
+    <button onclick="buyWeapon('강철검')">강철검 (300G / 공격력 2)</button>
+    <button onclick="buyWeapon('다이아몬드 검')">다이아검 (600G / 공격력 3)</button>
+    <button onclick="buyWeapon('세라핌 검')">세라핌검 (5000G / 공격력 6)</button>
 
-    <div class="shop-item">
-      <h3>${shopItems.diamondSword.name}</h3>
-      <p>가격: ${shopItems.diamondSword.price}G</p>
-      <p>${shopItems.diamondSword.desc}</p>
-      <button onclick="buyItem('diamondSword'); playSound('sfxClick')">구매</button>
-    </div>
+    <button onclick="buyPotion()">포션 (50G / 풀회복)</button>
 
-    <div class="shop-item">
-      <h3>${shopItems.seraphimSword.name}</h3>
-      <p>가격: ${shopItems.seraphimSword.price}G</p>
-      <p>${shopItems.seraphimSword.desc}</p>
-      <button onclick="buyItem('seraphimSword'); playSound('sfxClick')">구매</button>
-    </div>
-
-    ${renderBackToFieldButton()}
+    <br><br>
+    <button onclick="updateUI()">뒤로가기</button>
   `;
 }
 
-function buyItem(key) {
-  const item = shopItems[key];
+function buyWeapon(name) {
+  const w = weapons[name];
 
-  if (player.gold < item.price) {
-    alert("골드가 부족하다.");
-    return;
+  if (player.gold >= w.price) {
+    player.gold -= w.price;
+    player.weapon = name;
+    player.atk = w.atk;
+    alert(name + " 구매 완료!");
+  } else {
+    alert("돈 부족!");
   }
 
-  player.gold -= item.price;
+  openShop();
+}
 
-  if (item.type === "potion") {
+function buyPotion() {
+  if (player.gold >= 50) {
+    player.gold -= 50;
     player.hp = player.maxHp;
-    alert("포션 사용. 체력이 전부 회복되었다.");
+    alert("풀 회복!");
+  } else {
+    alert("돈 부족!");
   }
 
-  if (item.type === "weapon") {
-    player.weapon = item.name;
-    player.atk = item.atk;
-    alert(item.name + " 장착 완료.");
-  }
-
-  shop();
+  openShop();
 }
