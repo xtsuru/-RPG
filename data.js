@@ -1,85 +1,32 @@
-const defaultPlayer = () => ({
+let player = {
   hp: 5,
   maxHp: 5,
-  gold: 0,
-  weapon: "없음",
   atk: 1,
+  gold: 0,
+  weapon: "맨손",
   level: 1,
-  normalKillCount: 0
-});
+  killCount: 0
+};
 
-let player = defaultPlayer();
+let weapons = {
+  "맨손": { atk: 1, price: 0 },
+  "강철검": { atk: 2, price: 300 },
+  "다이아몬드 검": { atk: 3, price: 600 },
+  "세라핌 검": { atk: 6, price: 5000 }
+};
 
-const enemies = {
+let monsters = {
   slime: {
-    key: "slime",
     name: "슬라임",
     hp: 3,
-    maxHp: 3,
-    damage: 1,
-    rewardGold: 50,
-    type: "normal"
+    atk: 1,
+    reward: 20
   },
   kingSlime: {
-    key: "kingSlime",
     name: "킹 슬라임",
     hp: 10,
-    maxHp: 10,
-    damage: 2,
-    rewardGold: 300,
-    type: "boss"
-  }
-};
-
-let currentEnemy = null;
-
-const shopItems = {
-  potion: {
-    key: "potion",
-    name: "체력 회복 포션",
-    price: 50,
-    type: "potion",
-    desc: "체력을 전부 회복"
-  },
-  diamondSword: {
-    key: "diamondSword",
-    name: "다이아몬드 검",
-    price: 500,
     atk: 2,
-    type: "weapon",
-    desc: "공격력 2"
-  },
-  seraphimSword: {
-    key: "seraphimSword",
-    name: "심연의 세라핌 검",
-    price: 5000,
-    atk: 6,
-    type: "weapon",
-    desc: "공격력 6"
+    reward: 200,
+    boss: true
   }
 };
-
-function resetGame() {
-  player = defaultPlayer();
-  currentEnemy = null;
-}
-
-function createEnemy(enemyKey) {
-  const base = enemies[enemyKey];
-  return {
-    key: base.key,
-    name: base.name,
-    hp: base.hp,
-    maxHp: base.maxHp,
-    damage: base.damage,
-    rewardGold: base.rewardGold,
-    type: base.type
-  };
-}
-
-function levelUp() {
-  player.level += 1;
-  player.maxHp += 1;
-  player.hp = player.maxHp;
-  player.atk += 1;
-}
