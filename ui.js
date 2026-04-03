@@ -49,3 +49,14 @@ function getChoiceName(choice) {
   if (choice === "rock") return "바위";
   return "보";
 }
+function updateUI() {
+  document.getElementById("game").innerHTML = `
+    <h2>레벨: ${player.level}</h2>
+    <h2>체력: ${player.hp}/${player.maxHp}</h2>
+    <h2>골드: ${player.gold}G</h2>
+    <h2>무기: ${player.weapon} (공격력 ${player.atk})</h2>
+
+    <button onclick="goHunt()">사냥</button>
+    <button onclick="openShop()">상점</button>
+  `;
+}
