@@ -1,6 +1,6 @@
-function startBattle() {
-  slime = defaultSlime();
-  renderBattle("슬라임이 나타났다. 가위, 바위, 보로 싸운다.");
+function startBattle(enemyKey) {
+  currentEnemy = createEnemy(enemyKey);
+  renderBattle(`${currentEnemy.name}이(가) 나타났다. 가위, 바위, 보로 싸운다.`);
 }
 
 function renderBattle(message = "") {
@@ -16,22 +16,23 @@ function renderBattle(message = "") {
       </div>
 
       <div class="panel">
-        <h3>🟢 슬라임</h3>
-        <div class="hpbar">${makeHpBar(slime.hp, slime.maxHp)}</div>
-        <div>체력: ${slime.hp}/${slime.maxHp}</div>
+        <h3>${currentEnemy.type === "boss" ? "👑" : "🟢"} ${currentEnemy.name}</h3>
+        <div class="hpbar">${makeHpBar(currentEnemy.hp, currentEnemy.maxHp)}</div>
+        <div>체력: ${currentEnemy.hp}/${currentEnemy.maxHp}</div>
+        <div>공격력: ${currentEnemy.damage}</div>
       </div>
     </div>
 
     <div class="message">${message}</div>
 
     <div>
-      <button onclick="playRPS('scissors'); playSound('sfxClick')">✌ 가위</button>
-      <button onclick="playRPS('rock'); playSound('sfxClick')">✊ 바위</button>
-      <button onclick="playRPS('paper'); playSound('sfxClick')">✋ 보</button>
+      <button onclick="playRPS('scissors')">✌ 가위</button>
+      <button onclick="playRPS('rock')">✊ 바위</button>
+      <button onclick="playRPS('paper')">✋ 보</button>
     </div>
 
     <div style="margin-top: 12px;">
-      <button onclick="field(); playSound('sfxClick')">도망</button>
+      <button onclick="field()">도망</button>
     </div>
 
     <div style="margin-top: 12px;">
@@ -40,7 +41,7 @@ function renderBattle(message = "") {
   `;
 }
 
-function getBiasedSlimeChoice(playerChoice) {
+function getBiasedEnemyChoice(playerChoice) {
   const roll = Math.random();
 
   if (roll < 0.48) {
@@ -59,42 +60,60 @@ function getBiasedSlimeChoice(playerChoice) {
 }
 
 function playRPS(playerChoice) {
-  const slimeChoice = getBiasedSlimeChoice(playerChoice);
-  let message = `너: ${getChoiceName(playerChoice)} / 슬라임: ${getChoiceName(slimeChoice)}<br>`;
+  const enemyChoice = getBiasedEnemyChoice(playerChoice);
+  let message = `너: ${getChoiceName(playerChoice)} / ${currentEnemy.name}: ${getChoiceName(enemyChoice)}<br>`;
 
-  if (playerChoice === slimeChoice) {
+  if (playerChoice === enemyChoice) {
     message += "비겼다. 아무 일도 일어나지 않았다.";
     renderBattle(message);
     return;
   }
 
   const isWin =
-    (playerChoice === "scissors" && slimeChoice === "paper") ||
-    (playerChoice === "rock" && slimeChoice === "scissors") ||
-    (playerChoice === "paper" && slimeChoice === "rock");
+    (playerChoice === "scissors" && enemyChoice === "paper") ||
+    (playerChoice === "rock" && enemyChoice === "scissors") ||
+    (playerChoice === "paper" && enemyChoice === "rock");
 
   if (isWin) {
-    slime.hp -= player.atk;
-    if (slime.hp < 0) slime.hp = 0;
-    playSound("sfxHit");
-    message += `승리. 슬라임에게 ${player.atk} 데미지.`;
+    currentEnemy.hp -= player.atk;
+    if (currentEnemy.hp < 0) currentEnemy.hp = 0;
+    message += `승리. ${currentEnemy.name}에게 ${player.atk} 데미지.`;
   } else {
-    player.hp -= 1;
+    player.hp -= currentEnemy.damage;
     if (player.hp < 0) player.hp = 0;
-    playSound("sfxHit");
-    message += "패배. 플레이어가 1 데미지를 입었다.";
+    message += `패배. 플레이어가 ${currentEnemy.damage} 데미지를 입었다.`;
   }
 
-  if (slime.hp <= 0) {
-    player.gold += 50;
-    playSound("sfxWin");
+  if (currentEnemy.hp <= 0) {
+    let levelMessage = "";
+
+    player.gold += currentEnemy.rewardGold;
+
+    if (currentEnemy.type === "normal") {
+      player.normalKillCount += 1;
+
+      if (player.normalKillCount >= 2) {
+        player.normalKillCount = 0;
+        levelUp();
+        levelMessage = `<p>⬆ 레벨업! 현재 레벨 ${player.level}</p>
+        <p>체력 최대치 +1 / 공격력 +1 / 체력 전부 회복</p>`;
+      }
+    }
+
+    if (currentEnemy.type === "boss") {
+      levelUp();
+      levelMessage = `<p>👑 보스 처치 보상으로 즉시 레벨업!</p>
+      <p>현재 레벨 ${player.level}</p>
+      <p>체력 최대치 +1 / 공격력 +1 / 체력 전부 회복</p>`;
+    }
+
     getGame().innerHTML = `
       <h2>🏆 승리</h2>
       ${renderTop()}
       <div class="message">${message}</div>
-      <p>슬라임을 쓰러뜨렸다. 50G 획득.</p>
-      <button onclick="startBattle(); playSound('sfxClick')">다시 전투</button>
-      ${renderBackToFieldButton()}
+      <p>${currentEnemy.name}을(를) 쓰러뜨렸다. ${currentEnemy.rewardGold}G 획득.</p>
+      ${levelMessage}
+      <button onclick="field()">필드로 돌아가기</button>
       <div style="margin-top: 12px;">${renderShopButton()}</div>
     `;
     return;
@@ -107,7 +126,7 @@ function playRPS(playerChoice) {
       ${renderTop()}
       <div class="message">${message}</div>
       <p>죽어서 게임이 리셋되었다.</p>
-      <button onclick="field(); playSound('sfxClick')">처음부터 시작</button>
+      <button onclick="field()">처음부터 시작</button>
       <div style="margin-top: 12px;">${renderShopButton()}</div>
     `;
     return;
