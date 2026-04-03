@@ -1,136 +1,91 @@
-function startBattle(enemyKey) {
-  currentEnemy = createEnemy(enemyKey);
-  renderBattle(`${currentEnemy.name}이(가) 나타났다. 가위, 바위, 보로 싸운다.`);
+let currentMonster = null;
+
+function goHunt() {
+  // 확률로 보스 등장
+  if (Math.random() < 0.2) {
+    startBattle("kingSlime");
+  } else {
+    startBattle("slime");
+  }
 }
 
-function renderBattle(message = "") {
-  getGame().innerHTML = `
-    <h2>⚔ 전투</h2>
-    ${renderTop()}
+function startBattle(type) {
+  const m = monsters[type];
 
-    <div class="row">
-      <div class="panel">
-        <h3>👤 플레이어</h3>
-        <div class="hpbar">${makeHpBar(player.hp, player.maxHp)}</div>
-        <div>체력: ${player.hp}/${player.maxHp}</div>
-      </div>
+  currentMonster = {
+    name: m.name,
+    hp: m.hp,
+    atk: m.atk,
+    reward: m.reward,
+    boss: m.boss || false
+  };
 
-      <div class="panel">
-        <h3>${currentEnemy.type === "boss" ? "👑" : "🟢"} ${currentEnemy.name}</h3>
-        <div class="hpbar">${makeHpBar(currentEnemy.hp, currentEnemy.maxHp)}</div>
-        <div>체력: ${currentEnemy.hp}/${currentEnemy.maxHp}</div>
-        <div>공격력: ${currentEnemy.damage}</div>
-      </div>
-    </div>
+  renderBattle();
+}
 
-    <div class="message">${message}</div>
+function renderBattle() {
+  document.getElementById("game").innerHTML = `
+    <h2>${currentMonster.name}</h2>
+    <p>몬스터 체력: ${"🟥".repeat(currentMonster.hp)}</p>
+    <p>내 체력: ${"🟩".repeat(player.hp)}</p>
 
-    <div>
-      <button onclick="playRPS('scissors')">✌ 가위</button>
-      <button onclick="playRPS('rock')">✊ 바위</button>
-      <button onclick="playRPS('paper')">✋ 보</button>
-    </div>
-
-    <div style="margin-top: 12px;">
-      <button onclick="field()">도망</button>
-    </div>
-
-    <div style="margin-top: 12px;">
-      ${renderShopButton()}
-    </div>
+    <button onclick="fight()">공격 (가위바위보)</button>
+    <button onclick="openShop()">상점</button>
   `;
 }
 
-function getBiasedEnemyChoice(playerChoice) {
-  const roll = Math.random();
+function fight() {
+  const choices = ["가위", "바위", "보"];
+  const playerChoice = choices[Math.floor(Math.random() * 3)];
+  const enemyChoice = choices[Math.floor(Math.random() * 3)];
 
-  if (roll < 0.48) {
-    if (playerChoice === "scissors") return "paper";
-    if (playerChoice === "rock") return "scissors";
-    return "rock";
+  let result = "";
+
+  if (
+    (playerChoice === "가위" && enemyChoice === "보") ||
+    (playerChoice === "바위" && enemyChoice === "가위") ||
+    (playerChoice === "보" && enemyChoice === "바위")
+  ) {
+    // 승리 → 공격 성공
+    currentMonster.hp -= player.atk;
+    result = "공격 성공!";
+  } else {
+    // 패배 → 맞음
+    player.hp -= currentMonster.atk;
+    result = "공격 실패! 맞았다!";
   }
 
-  if (roll < 0.73) {
-    return playerChoice;
-  }
-
-  if (playerChoice === "scissors") return "rock";
-  if (playerChoice === "rock") return "paper";
-  return "scissors";
-}
-
-function playRPS(playerChoice) {
-  const enemyChoice = getBiasedEnemyChoice(playerChoice);
-  let message = `너: ${getChoiceName(playerChoice)} / ${currentEnemy.name}: ${getChoiceName(enemyChoice)}<br>`;
-
-  if (playerChoice === enemyChoice) {
-    message += "비겼다. 아무 일도 일어나지 않았다.";
-    renderBattle(message);
+  // 죽었을 때
+  if (player.hp <= 0) {
+    alert("죽었다! 게임 리셋");
+    location.reload();
     return;
   }
 
-  const isWin =
-    (playerChoice === "scissors" && enemyChoice === "paper") ||
-    (playerChoice === "rock" && enemyChoice === "scissors") ||
-    (playerChoice === "paper" && enemyChoice === "rock");
+  if (currentMonster.hp <= 0) {
+    player.gold += currentMonster.reward;
 
-  if (isWin) {
-    currentEnemy.hp -= player.atk;
-    if (currentEnemy.hp < 0) currentEnemy.hp = 0;
-    message += `승리. ${currentEnemy.name}에게 ${player.atk} 데미지.`;
-  } else {
-    player.hp -= currentEnemy.damage;
-    if (player.hp < 0) player.hp = 0;
-    message += `패배. 플레이어가 ${currentEnemy.damage} 데미지를 입었다.`;
-  }
-
-  if (currentEnemy.hp <= 0) {
-    let levelMessage = "";
-
-    player.gold += currentEnemy.rewardGold;
-
-    if (currentEnemy.type === "normal") {
-      player.normalKillCount += 1;
-
-      if (player.normalKillCount >= 2) {
-        player.normalKillCount = 0;
+    if (currentMonster.boss) {
+      levelUp(); // 보스는 즉시 레벨업
+    } else {
+      player.killCount++;
+      if (player.killCount >= 2) {
         levelUp();
-        levelMessage = `<p>⬆ 레벨업! 현재 레벨 ${player.level}</p>
-        <p>체력 최대치 +1 / 공격력 +1 / 체력 전부 회복</p>`;
+        player.killCount = 0;
       }
     }
 
-    if (currentEnemy.type === "boss") {
-      levelUp();
-      levelMessage = `<p>👑 보스 처치 보상으로 즉시 레벨업!</p>
-      <p>현재 레벨 ${player.level}</p>
-      <p>체력 최대치 +1 / 공격력 +1 / 체력 전부 회복</p>`;
-    }
-
-    getGame().innerHTML = `
-      <h2>🏆 승리</h2>
-      ${renderTop()}
-      <div class="message">${message}</div>
-      <p>${currentEnemy.name}을(를) 쓰러뜨렸다. ${currentEnemy.rewardGold}G 획득.</p>
-      ${levelMessage}
-      <button onclick="field()">필드로 돌아가기</button>
-      <div style="margin-top: 12px;">${renderShopButton()}</div>
-    `;
+    alert(`${currentMonster.name} 처치! +${currentMonster.reward}G`);
+    updateUI();
     return;
   }
 
-  if (player.hp <= 0) {
-    resetGame();
-    getGame().innerHTML = `
-      <h2>💀 게임 오버</h2>
-      ${renderTop()}
-      <div class="message">${message}</div>
-      <p>죽어서 게임이 리셋되었다.</p>
-      <button onclick="field()">처음부터 시작</button>
-      <div style="margin-top: 12px;">${renderShopButton()}</div>
-    `;
-    return;
-  }
+  renderBattle();
+}
 
-  renderBattle(message);
+function levelUp() {
+  player.level++;
+  player.maxHp++;
+  player.hp = player.maxHp;
+  alert("레벨 업!");
 }
